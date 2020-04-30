@@ -1,10 +1,7 @@
-package go_web_utilities
+package gw
 
 import (
-	"ad-go-back/models"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -83,43 +80,43 @@ func (c *Context) BindJSON(v interface{}) error {
 	return c.c.BindJSON(v)
 }
 
-func (c *Context) SetJWTByUser(user *models.User) error {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{ "userId": user.ID })
-	tokenString, err := token.SignedString(JWT_SECRECT)
-	if err != nil { return err }
-	c.c.SetCookie("token", tokenString, 14 * 24 * 60 * 60, "/", "", false, false)
-	return nil
-}
+//func (c *Context) SetJWTByUser(user *models.User) error {
+//	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{ "userId": user.ID })
+//	tokenString, err := token.SignedString(JWT_SECRECT)
+//	if err != nil { return err }
+//	c.c.SetCookie("token", tokenString, 14 * 24 * 60 * 60, "/", "", false, false)
+//	return nil
+//}
 
 func (c *Context) RemoveToken () {
 	c.c.SetCookie("token", "", -1, "/", "", false, false)
 }
 
-func (c *Context) GetUserByJWT(tokenString string) (*models.User, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("token 方法不对")
-		}
-		return JWT_SECRECT, nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	userIdStr := token.Claims.(jwt.MapClaims)["userId"]
-	if userIdStr == nil {
-		return nil, errors.New("登录态无效")
-	}
-	userValue := reflect.ValueOf(userIdStr)
-	if userValue.Kind() != reflect.Float64 {
-		return nil, errors.New("登录态无效")
-	}
-	userId := int(userValue.Float())
-	user, err := models.FindUserG(userId)
-	if err != nil || user == nil {
-		return nil, errors.New("当前用户不存在")
-	}
-	return user, err
-}
+//func (c *Context) GetUserByJWT(tokenString string) (*models.User, error) {
+//	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+//		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+//			return nil, errors.New("token 方法不对")
+//		}
+//		return JWT_SECRECT, nil
+//	})
+//	if err != nil {
+//		return nil, err
+//	}
+//	userIdStr := token.Claims.(jwt.MapClaims)["userId"]
+//	if userIdStr == nil {
+//		return nil, errors.New("登录态无效")
+//	}
+//	userValue := reflect.ValueOf(userIdStr)
+//	if userValue.Kind() != reflect.Float64 {
+//		return nil, errors.New("登录态无效")
+//	}
+//	userId := int(userValue.Float())
+//	user, err := models.FindUserG(userId)
+//	if err != nil || user == nil {
+//		return nil, errors.New("当前用户不存在")
+//	}
+//	return user, err
+//}
 
 func (c *Context) HasField (field string) bool {
 	if _, ok := c.updateFields[field]; ok {
@@ -164,27 +161,27 @@ func Rest(f func(c *Context)) gin.HandlerFunc {
 	}
 }
 
-func RequireLogin(f func(c *Context, user *models.User)) gin.HandlerFunc {
-	return func(context *gin.Context) {
-		c := NewContext(context)
-		token, err := context.Cookie("token")
-		if err != nil {
-			c.Unauthorized("请先登录")
-			return
-		}
-		user, err := c.GetUserByJWT(token)
-		if err != nil {
-			c.Unauthorized(err.Error())
-			return
-		}
-		f(c, user)
-	}
-}
+//func RequireLogin(f func(c *Context, user *models.User)) gin.HandlerFunc {
+//	return func(context *gin.Context) {
+//		c := NewContext(context)
+//		token, err := context.Cookie("token")
+//		if err != nil {
+//			c.Unauthorized("请先登录")
+//			return
+//		}
+//		user, err := c.GetUserByJWT(token)
+//		if err != nil {
+//			c.Unauthorized(err.Error())
+//			return
+//		}
+//		f(c, user)
+//	}
+//}
 
-func RequireAdmin(f func(c *Context, admin *models.User)) gin.HandlerFunc {
+/*func RequireAdmin(f func(c *Context, admin *models.User)) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		f(NewContext(context), nil)
 	}
 }
-
+*/
 
